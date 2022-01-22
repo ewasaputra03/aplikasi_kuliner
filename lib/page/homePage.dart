@@ -1,13 +1,14 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:program/data/listKuliner.dart';
 import 'package:program/page/detailPage.dart';
 import 'package:program/page/mainMenu.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:program/page/tambah_list.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -25,35 +26,69 @@ class _HomePageState extends State<HomePage> {
 
   Iterable markers = [];
   bool visible = false;
+  //
+  // Iterable _markers = Iterable.generate(AppConstant.list.length, (index) {
+  //   return Marker(
+  //       markerId: MarkerId(AppConstant.list[index]['id']),
+  //       position: LatLng(
+  //         AppConstant.list[index]['lat'],
+  //         AppConstant.list[index]['lon'],
+  //       ),
+  //       onTap: () {
+  //         print('tap aja');
+  //       },
+  //       infoWindow: InfoWindow(
+  //           onTap: () {
+  //             final warung = AppConstant.list[index]["title"];
+  //             final deskripsi = AppConstant.list[index]["des"];
+  //             final lat = AppConstant.list[index]['lat'];
+  //             final lon = AppConstant.list[index]['lon'];
+  //             Get.to(DetailPage(
+  //                 warung: warung, deskripsi: deskripsi, lat: lat, lon: lon));
+  //           },
+  //           title: AppConstant.list[index]["title"]));
+  // });
 
-  Iterable _markers = Iterable.generate(AppConstant.list.length, (index) {
-    return Marker(
-        markerId: MarkerId(AppConstant.list[index]['id']),
-        position: LatLng(
-          AppConstant.list[index]['lat'],
-          AppConstant.list[index]['lon'],
-        ),
-        onTap: () {
-          print('tap aja');
-        },
-        infoWindow: InfoWindow(
+  void getList() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final list = prefs.getString('list');
+    if (list == null) {
+      print('tidak ada list');
+    } else {
+      final listini = json.decode(list);
+      Iterable _markers = Iterable.generate(listini.length, (index) {
+        return Marker(
+            markerId: MarkerId(listini[index]['id']),
+            position: LatLng(
+              listini[index]['lat'],
+              listini[index]['lon'],
+            ),
             onTap: () {
-              final warung = AppConstant.list[index]["title"];
-              final deskripsi = AppConstant.list[index]["des"];
-              final lat = AppConstant.list[index]['lat'];
-              final lon = AppConstant.list[index]['lon'];
-              Get.to(DetailPage(
-                  warung: warung, deskripsi: deskripsi, lat: lat, lon: lon));
+              print('tap aja');
             },
-            title: AppConstant.list[index]["title"]));
-  });
+            infoWindow: InfoWindow(
+                onTap: () async {
 
+                  final warung = listini[index]["title"];
+                  final deskripsi = listini[index]["des"];
+                  final lat = listini[index]['lat'];
+                  final lon = listini[index]['lon'];
+                  Get.to(DetailPage(
+                      warung: warung, deskripsi: deskripsi, lat: lat, lon: lon));
+                },
+                title: listini[index]["title"]));
+      });
+
+      setState(() {
+        markers = _markers;
+      });
+    }
+
+  }
   @override
   void initState() {
-    setState(() {
-      markers = _markers;
-    });
     super.initState();
+    getList();
   }
 
   @override
@@ -80,7 +115,7 @@ class _HomePageState extends State<HomePage> {
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: Colors.red[300],
         onPressed: () {
-          print('button ditekan');
+          Get.to(TambahList(lat: '0', lng: '0'));
         },
         label: Text('Tambah Info!'),
         icon: Icon(Icons.add),

@@ -1,8 +1,12 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:program/data/listKuliner.dart';
 import 'package:program/page/about.dart';
 import 'package:program/page/homePage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MainMenu extends StatefulWidget {
   const MainMenu({Key? key}) : super(key: key);
@@ -12,6 +16,26 @@ class MainMenu extends StatefulWidget {
 }
 
 class _MainMenuState extends State<MainMenu> {
+  void saveId() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final listnya = json.encode(AppConstant.list);
+    final list = prefs.getString('list');
+    if (list == null) {
+      prefs.setString('list', listnya);
+      print('tidak ada prefs');
+    } else {
+      // prefs.setString('list', listnya);
+      print('ada prefs listnya');
+    }
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    saveId();
+  }
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
